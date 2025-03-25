@@ -1,0 +1,60 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Administrador de Vales {% endblock title %}
+
+{% block content %}
+<div class="header bg-primary pb-6">
+  <div class="container-fluid">
+    <div class="header-body"></div>
+  </div>
+</div>
+
+<div class="container-fluid mt--6">
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <div class="card-header border-0 d-flex justify-content-between align-items-center">
+          <h3 class="mb-0">Lotes de Vales</h3>
+          <div class="d-flex">
+            <input type="text" class="form-control rounded-pill mr-2" id="searchLotInput" placeholder="Buscar por ID">
+            <select class="form-control rounded-pill" id="filterVoucherType">
+              <option value="">Todos los Tipos</option>
+              <option value="UNICO">Único</option>
+              <option value="PERPETUO">Perpetuo</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table align-items-center table-flush">
+            <thead class="thead-light">
+              <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Cliente</th>
+                <th>Comedor</th>
+                <th>Email</th>
+                <th>Fecha Creación</th>
+                <th>Creado Por</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="lotTableBody"></tbody>
+          </table>
+        </div>
+        <div class="card-footer py-4">
+          <nav aria-label="...">
+            <ul class="pagination justify-content-end mb-0" id="pagination"></ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include "includes/footer.html" %}
+{% endblock content %}
+
+{% block javascripts %}
+<script src="/static/assets/html-js/loadDataLots.js"></script>
+{% endblock javascripts %}

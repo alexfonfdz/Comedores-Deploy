@@ -1,0 +1,196 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Tables {% endblock title %}
+
+{% block content %}
+
+  <div class="header bg-primary pb-6">
+    <div class="container-fluid">
+      <div class="header-body">        
+      </div>
+    </div>
+  </div>
+  
+    <!-- Page content -->
+  <div class="container-fluid mt--6">
+      <div class="row">
+          <div class="col">
+              <div class="card">
+                  <!-- Card header -->
+                  <div class="card-header border-0 d-flex justify-content-between align-items-center">
+                      <h3 class="mb-0">Comedores</h3>
+                      <div class="d-flex">
+                        <select class="form-control mr-3 ml-3" id="filterComedorSelect">
+                          <option value="all">Todos</option>
+                          <!-- Opciones adicionales se pueden agregar aquí -->
+                        </select>
+                        <button class="btn btn-primary rounded-pill" id="crear-comedor-btn" data-toggle="modal" data-target="#crearComedorModal">Crear</button>
+                      </div>
+                  </div>
+  
+                  <!-- Table -->
+                  <div class="table-responsive">
+                      <table class="table align-items-center table-flush">
+                          <thead class="thead-light">
+                              <tr>
+                                  <th scope="col" class="sort pl-5" data-sort="name">Nombre</th>
+                                  <th scope="col" class="sort" data-sort="description">Ubicacion</th>
+                                  <th scope="col" class="sort" data-sort="client">Cliente</th>
+                                  <th scope="col" class="sort" data-sort="in_charge">Encargado</th>
+                                  <th scope="col" class="sort" data-sort="status">Estatus</th>
+                                  <th scope="col" class="sort">Acciones</th>
+                              </tr>
+                          </thead>
+                          <tbody class="list">
+                              <!-- Aquí se llenarán los datos dinámicamente -->
+                          </tbody>
+                      </table>
+                  </div>
+  
+                  <!-- Card footer -->
+                  <div class="card-footer py-4">
+                      <nav aria-label="...">
+                          <ul class="pagination justify-content-end mb-0">
+                              <!-- Aquí se llenarán los elementos de paginación dinámicamente -->
+                          </ul>
+                      </nav>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <!-- Toast container -->
+      <div aria-live="polite" aria-atomic="true" class="position-relative" style="z-index: 1070;" id="toast-area" aria-hidden="true">
+          <div class="toast-container position-fixed bottom-0 right-0 p-4 m-1 z-4" id="toastContainer">
+              <!-- Toasts will be dynamically added here -->
+          </div>
+      </div>
+
+  
+      {% include "includes/footer.html" %}
+  </div>
+  
+                <!-- Modal Crear -->
+                <div class="modal fade" id="crearComedorModal" tabindex="-1" role="dialog" aria-labelledby="crearComedorModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="crearComedorModalLabel">Crear Comedor</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="cerrarComedorBtn">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        <form id="crearComedorForm">
+                          <div class="form-row">
+                            <div class="form-group col-md-6">
+                              <label for="comedorName">Nombre</label>
+                              <input type="text" class="form-control" id="comedorName" placeholder="Nombre del comedor">
+                              <div class="invalid-feedback" id="comedorNameError">El campo Nombre es obligatorio.</div>
+                            </div>
+                            <div class="form-group col-md-6">
+                              <label for="comedorDescription">Ubicacion</label>
+                              <input type="text" class="form-control" id="comedorDescription" placeholder="Ubicacion del comedor">
+                              <div class="invalid-feedback" id="comedorDescriptionError">El campo Descripción es obligatorio.</div>
+                            </div>
+                          </div>
+                          <div class="form-row">
+                            <div class="form-group col-md-6">
+                              <label for="comedorClient">Cliente</label>
+                              <select class="form-control" id="selectCliente">                        
+                                <!-- Opciones se llenarán dinámicamente -->
+                              </select>
+                              <div class="invalid-feedback" id="comedorClientError">El campo Cliente es obligatorio.</div>
+                            </div>
+                            <div class="form-group col-md-6">
+                              <label for="comedorInCharge">Encargado</label>
+                              <select class="form-control" id="comedorInCharge">                        
+                                <!-- Opciones se llenarán dinámicamente -->
+                              </select>
+                              <div class="invalid-feedback" id="comedorInChargeError">El campo Encargado es obligatorio.</div>
+                            </div>
+                          </div>
+                          <div class="form-row">
+                            <div class="form-group col-md-6">
+                              <label for="comedorStatus">Estatus</label>
+                              <select class="form-control" id="comedorStatus">
+                                <option value="1">Activo</option>
+                                <option value="0">Inactivo</option>
+                              </select>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarComedorBtn2">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="guardarComedorBtn">Guardar</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Modal Editar -->
+                <div class="modal fade" id="editarComedorModal" tabindex="-1" role="dialog" aria-labelledby="editarComedorModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="editarComedorModalLabel">Editar Comedor</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        <form id="editarComedorForm">
+                          <input type="hidden" id="editarComedorId">
+                          <div class="form-row">
+                            <div class="form-group col-md-6">
+                              <label for="editarComedorName">Nombre</label>
+                              <input type="text" class="form-control" id="editarComedorName" placeholder="Nombre del comedor">
+                              <div class="invalid-feedback" id="editarComedorNameError">El campo Nombre es obligatorio.</div>
+                            </div>
+                            <div class="form-group col-md-6">
+                              <label for="editarComedorDescription">Ubicación</label>
+                              <input type="text" class="form-control" id="editarComedorDescription" placeholder="Ubicación del comedor">
+                              <div class="invalid-feedback" id="editarComedorDescriptionError">El campo Ubicación es obligatorio.</div>
+                            </div>
+                          </div>
+                          <div class="form-row">
+                            <div class="form-group col-md-6">
+                              <label for="editarComedorClient">Cliente</label>
+                              <select class="form-control" id="editarComedorClient">
+                                <!-- Opciones se llenarán dinámicamente -->
+                              </select>
+                              <div class="invalid-feedback" id="editarComedorClientError">El campo Cliente es obligatorio.</div>
+                            </div>
+                            <div class="form-group col-md-6">
+                              <label for="editarComedorInCharge">Encargado</label>
+                              <select class="form-control" id="editarComedorInCharge">
+                                <!-- Opciones se llenarán dinámicamente -->
+                              </select>
+                              <div class="invalid-feedback" id="editarComedorInChargeError">El campo Encargado es obligatorio.</div>
+                            </div>
+                          </div>
+                          <div class="form-row">
+                            <div class="form-group col-md-6">
+                              <label for="editarComedorStatus">Estado</label>
+                              <select class="form-control" id="editarComedorStatus">
+                                <option value="1">Activo</option>
+                                <option value="0">Inactivo</option>
+                              </select>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="actualizarComedorBtn">Actualizar</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+<script src="/static/assets/html-js/loadDataComedores.js"></script>
+{% endblock javascripts %}

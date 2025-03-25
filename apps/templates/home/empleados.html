@@ -1,0 +1,286 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Tables {% endblock title %}
+
+{% block content %}
+
+<div class="header bg-primary pb-6">
+  <div class="container-fluid">
+    <div class="header-body">        
+    </div>
+  </div>
+</div>
+
+<!-- Page content -->
+<div class="container-fluid mt--6">
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <!-- Card header -->
+        <div class="card-header border-0 d-flex justify-content-between align-items-center">
+          <h3 class="mb-0">Empleados</h3>
+          <div class="d-flex">
+            <input type="text" class="form-control rounded-pill mr-2 ml-3" id="searchUserInput" placeholder="Buscar">
+            <select class="form-control mr-3 ml-1" id="filterEmployeeSelect">
+              <option value="all">Todos</option>
+              <!-- Opciones adicionales se pueden agregar aquí -->
+            </select>
+            
+            <button class="btn btn-primary rounded-pill" data-toggle="modal" data-target="#crearEmpleadoModal" onclick="openCreateModal()">Crear</button>
+            <button class="btn btn-primary rounded-pill" data-toggle="modal" data-target="#cargarEmpleadosModal">Cargar</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table align-items-center table-flush">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="sort" data-sort="employeed_code">Codigo Empleado</th>
+                <th scope="col" class="sort" data-sort="name">Nombres</th>
+                <th scope="col" class="sort" data-sort="lastname">Apellido Paterno</th>
+                <th scope="col" class="sort" data-sort="second_lastname">Apellido Materno</th>                
+                <th scope="col" class="sort" data-sort="client_id">Cliente</th>
+                <th scope="col" class="sort" data-sort="dinning_room">Comedor</th>
+                <th scope="col" class="sort" data-sort="payroll">Nomina</th>
+                <th scope="col" class="sort" data-sort="status">Estatus</th>
+                <th scope="col" class="sort">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="list" id="empleadosTableBody">
+              <!-- Aquí se llenarán los datos dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Card footer -->
+        <div class="card-footer py-4">
+          <nav aria-label="...">
+            <ul class="pagination justify-content-end mb-0">
+              <!-- Aquí se llenarán los elementos de paginación dinámicamente -->
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div aria-live="polite" aria-atomic="true" class="position-relative" style="z-index: 1070;" id="toast-area" aria-hidden="true">
+    <div class="toast-container position-fixed bottom-0 right-0 p-4 m-1 z-4" id="toastContainer">
+      <!-- Toasts will be dynamically added here -->
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+
+<!-- Modal Crear -->
+<div class="modal fade" id="crearEmpleadoModal" tabindex="-1" role="dialog" aria-labelledby="crearEmpleadoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="crearEmpleadoModalLabel">Crear empleado</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="crearEmpleadoForm">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="crearEmployeeCode">Codigo Empleado</label>
+              <input type="text" class="form-control" id="crearEmployeeCode" placeholder="Codigo del empleado">
+              <div class="invalid-feedback" id="crearEmployeeCodeError">Este campo es obligatorio.</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="crearEmployeeName">Nombre</label>
+              <input type="text" class="form-control" id="crearEmployeeName" placeholder="Nombre del empleado">
+              <div class="invalid-feedback" id="crearEmployeeNameError">Este campo es obligatorio.</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="crearEmployeeLastname">Apellido Paterno</label>
+              <input type="text" class="form-control" id="crearEmployeeLastname" placeholder="Apellido Paterno">
+              <div class="invalid-feedback" id="crearEmployeeLastnameError">Este campo es obligatorio.</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="crearEmployeeSecondLastname">Apellido Materno</label>
+              <input type="text" class="form-control" id="crearEmployeeSecondLastname" placeholder="Apellido Materno">
+              <div class="invalid-feedback" id="crearEmployeeSecondLastnameError">Este campo es obligatorio.</div>
+            </div>
+          </div>          
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="crearEmployeeClient">Cliente</label>
+              <select class="form-control" id="crearEmployeeClient">                
+                <!-- Opciones se llenarán dinámicamente -->
+              </select>
+              <div class="invalid-feedback" id="crearEmployeeClientError">Este campo es obligatorio.</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="crearDinningRoomClient">Comedor</label>
+              <select class="form-control" id="crearDinningRoomClient">                
+                <!-- Opciones se llenarán dinámicamente -->
+              </select>
+              <div class="invalid-feedback" id="crearDinningRoomClientError">Este campo es obligatorio.</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="crearEmployeePayroll">Nomina</label>
+              <select class="form-control" id="crearEmployeePayroll">                
+                <!-- Opciones se llenarán dinámicamente -->
+              </select>
+              <div class="invalid-feedback" id="crearEmployeePayrollError">Este campo es obligatorio.</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="crearEmployeeStatus">Estatus</label>
+              <select class="form-control" id="crearEmployeeStatus">
+                <option value="1">Activo</option>
+                <option value="0">Inactivo</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarComedorBtn2">Cerrar</button>
+        <button type="button" class="btn btn-primary" id="guardarEmpleadoBtn">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="editarEmpleadoModal" tabindex="-1" role="dialog" aria-labelledby="editarEmpleadoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editarEmpleadoModalLabel">Datos del Empleado</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editarEmpleadoForm">
+          <input type="hidden" id="editarEmpleadoId">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="editarEmployeeCode">Codigo Empleado</label>
+              <input type="text" class="form-control" id="editarEmployeeCode" placeholder="Codigo del empleado">
+              <div class="invalid-feedback" id="editarEmployeeCodeError">Este campo es obligatorio.</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="editarEmployeeName">Nombre</label>
+              <input type="text" class="form-control" id="editarEmployeeName" placeholder="Nombre del empleado">
+              <div class="invalid-feedback" id="editarEmployeeNameError">Este campo es obligatorio.</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="editarEmployeeLastname">Apellido Paterno</label>
+              <input type="text" class="form-control" id="editarEmployeeLastname" placeholder="Apellido Paterno">
+              <div class="invalid-feedback" id="editarEmployeeLastnameError">Este campo es obligatorio.</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="editarEmployeeSecondLastname">Apellido Materno</label>
+              <input type="text" class="form-control" id="editarEmployeeSecondLastname" placeholder="Apellido Materno">
+              <div class="invalid-feedback" id="editarEmployeeSecondLastnameError">Este campo es obligatorio.</div>
+            </div>
+          </div>          
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="editarEmployeeClient">Cliente</label>
+              <select class="form-control" id="editarEmployeeClient">
+                <!-- Opciones se llenarán dinámicamente -->
+              </select>
+              <div class="invalid-feedback" id="editarEmployeeClientError">Este campo es obligatorio.</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="editarDinningRoomClient">Comedor</label>
+              <select class="form-control" id="editarDinningRoomClient">
+                <!-- Opciones se llenarán dinámicamente -->
+              </select>
+              <div class="invalid-feedback" id="editarDinningRoomClientError">Este campo es obligatorio.</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="editarEmployeePayroll">Nomina</label>
+              <select class="form-control" id="editarEmployeePayroll">
+                <!-- Opciones se llenarán dinámicamente -->
+              </select>
+              <div class="invalid-feedback" id="editarEmployeePayrollError">Este campo es obligatorio.</div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="editarEmployeeStatus">Estatus</label>
+              <select class="form-control" id="editarEmployeeStatus">
+                <option value="1">Activo</option>
+                <option value="0">Inactivo</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" id="actualizarEmpleadoBtn">Actualizar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para cargar archivo Excel -->
+<div class="modal fade" id="cargarEmpleadosModal" tabindex="-1" role="dialog" aria-labelledby="cargarEmpleadosModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cargarEmpleadosModalLabel">Cargar Empleados desde Excel</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="cargarEmpleadosForm">
+          <div class="form-group">
+            <label for="selectCliente">Seleccionar Cliente</label>
+            <select class="form-control" id="selectCliente">
+              <!-- Opciones se llenarán dinámicamente -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="selectComedor">Seleccionar Comedor</label>
+            <select class="form-control" id="selectComedor" disabled>
+              <!-- Opciones se llenarán dinámicamente -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="archivoExcel">Seleccionar archivo Excel</label>
+            <input type="file" class="form-control" id="archivoExcel" accept=".xlsx, .xls">
+          </div>
+        </form>
+
+        <!-- Loader -->
+        <div id="modalLoader" style="display: none; text-align: center; margin-top: 20px;">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Cargando...</span>
+          </div>
+          <p>Cargando empleados, por favor espere...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" id="cargarEmpleadosBtn">Cargar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+<script src="/static/assets/html-js/loadDataEmpleados.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+{% endblock javascripts %}

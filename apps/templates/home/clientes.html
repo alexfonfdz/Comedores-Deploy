@@ -1,0 +1,211 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Clientes {% endblock title %}
+
+{% block content %}
+
+  <div class="header bg-primary pb-6">
+    <div class="container-fluid">
+      <div class="header-body">        
+      </div>
+    </div>
+  </div>
+  
+  <!-- Page content -->
+  <div class="container-fluid mt--6">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <!-- Card header -->
+          <div class="card-header border-0 d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Clientes</h3>
+            <!-- Search for company, name, lastname or second lastname -->
+            <div class="d-flex">
+              <input type="text" class="form-control rounded-pill mr-2 ml-3" id="searchClientInput" placeholder="Buscar">
+              <button class="btn btn-primary rounded-pill" id="createClientBtn" data-toggle="modal" data-target="#createClientModal">Crear</button>
+            </div>
+          </div>
+                <!-- Light table -->
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Compañía</th>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Primer Apellido</th>
+                                <th scope="col">Segundo Apellido</th>
+                                <th scope="col">Correo</th>
+                                <th scope="col">Teléfono</th>
+                                <th scope="col">RFC</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientTableBody">
+                            <!-- Client rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Card footer -->
+                <div class="card-footer py-4">
+                    <nav aria-label="...">
+                        <ul class="pagination justify-content-end mb-0" id="pagination">
+                            <!-- Pagination links will be populated here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for creating client -->
+    <div class="modal" id="createClientModal" tabindex="-1" aria-labelledby="createClientModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createClientModalLabel">Crear Cliente</h5>
+                    <button type="button" class="btn-close close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createClientForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="create_company" class="form-label">Compañía</label>
+                                <input type="text" class="form-control" id="create_company" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="create_name" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="create_name" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="create_lastname" class="form-label">Primer Apellido</label>
+                                <input type="text" class="form-control" id="create_lastname" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="create_second_lastname" class="form-label">Segundo Apellido</label>
+                                <input type="text" class="form-control" id="create_second_lastname">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="create_email" class="form-label">Correo</label>
+                                <input type="email" class="form-control" id="create_email" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="create_phone" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="create_phone" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="create_rfc" class="form-label">RFC</label>
+                                <input type="text" class="form-control" id="create_rfc" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="create_address" class="form-label">Dirección</label>
+                                <input type="text" class="form-control" id="create_address" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="create_status" class="form-label">Estado</label>
+                                <select class="form-control" id="create_status" required>
+                                    <option value="true">Activo</option>
+                                    <option value="false">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer p-0">
+                          <button type="submit" class="btn btn-primary" data-dismiss="Modal" id="saveCreateClient">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for editing client -->
+    <div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editClientModalLabel">Modificar Cliente</h5>
+                    <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editClientForm">
+                        <input type="hidden" id="edit_clientId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_company" class="form-label">Compañía</label>
+                                <input type="text" class="form-control" id="edit_company" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_name" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="edit_name" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_lastname" class="form-label">Primer Apellido</label>
+                                <input type="text" class="form-control" id="edit_lastname" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_second_lastname" class="form-label">Segundo Apellido</label>
+                                <input type="text" class="form-control" id="edit_second_lastname">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_email" class="form-label">Correo</label>
+                                <input type="email" class="form-control" id="edit_email" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_phone" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="edit_phone" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_rfc" class="form-label">RFC</label>
+                                <input type="text" class="form-control" id="edit_rfc" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_address" class="form-label">Dirección</label>
+                                <input type="text" class="form-control" id="edit_address" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_status" class="form-label">Estado</label>
+                                <select class="form-control" id="edit_status" required>
+                                    <option value="true">Activo</option>
+                                    <option value="false">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer p-0">
+                          <button type="submit" class="btn btn-primary">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div aria-live="polite" aria-atomic="true" class="position-relative" style="z-index: 1070;" id="toast-area" aria-hidden="true">
+      <div class="toast-container position-fixed bottom-0 right-0 p-4 m-1 z-4" id="toastContainer" >
+          <!-- Toasts will be dynamically added here -->
+      </div>
+    </div>
+
+    {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script src="/static/assets/html-js/loadDataClientes.js"></script>
+{% endblock javascripts %}
