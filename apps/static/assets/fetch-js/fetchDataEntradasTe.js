@@ -33,26 +33,9 @@ async function getUsuarioEntrada() {
     }
 }
 
-async function validarVale(folio) {
+async function validarEmpleadoTe(codigoEmpleado) {
     try {
-        const response = await fetch(`/validar_vale`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ folio })
-        });
-
-        const data = await response.json();
-        return data;
-    } catch (error) {        
-        console.error('Error:', error.message);        
-    }
-}
-
-async function validarEmpleado(codigoEmpleado) {
-    try {
-        const response = await fetch('/validar_empleado', {
+        const response = await fetch('/validar_empleado_te', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

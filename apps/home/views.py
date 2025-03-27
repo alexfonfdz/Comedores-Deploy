@@ -1508,6 +1508,7 @@ def export_excel_employee_report(request):
 
         entry_employee = Entry.objects.select_related(
             'employee_client_diner__employee',
+            'employee_client_diner__employee__payroll',
             'employee_client_diner__client_diner__client',
             'employee_client_diner__client_diner__dining_room'
         ).filter(**filters).values(
@@ -1522,7 +1523,7 @@ def export_excel_employee_report(request):
             employee_second_lastname=F('employee_client_diner__employee__second_lastname'),
             employee_status=F('employee_client_diner__employee__status'),
             entry_created_at=F('created_at')
-        ).order_by('-created_at')
+        ).order_by('-created_at')            
 
         # Crear un DataFrame a partir del queryset
         df = pd.DataFrame(list(entry_employee))
@@ -1533,6 +1534,7 @@ def export_excel_employee_report(request):
         
         # Si el estado del empleado es True, cambiar a 'Activo', de lo contrario 'Inactivo'
         df['employee_status'] = df['employee_status'].apply(lambda x: 'Activo' if x else 'Inactivo')
+        
 
         # Definir los encabezados personalizados para la hoja de Excel
         headers = [
@@ -1570,13 +1572,23 @@ def export_excel_employee_report(request):
             'Apellido Materno Empleado',
             'Estado Empleado',
             'Nombre Comedor',
-            'Total Entradas'
+            'Total Entradas',
+            'Nomina'
         ]
         ws2.append(simplified_headers)
         add_styles(ws2, simplified_headers)
 
         # Generar un informe resumido (agregando por empleado)
         summary_df = df.groupby(['employee_code', 'employee_name', 'employee_lastname', 'employee_second_lastname', 'dining_room_name', 'employee_status']).size().reset_index(name='Total Entradas')
+
+
+        def add_payroll_types(row):
+            employee = Employee.objects.filter(employeed_code=row['employee_code']).first()
+            print(employee.payroll)
+            row['payroll_description'] = employee.payroll.description
+            return row
+    
+        summary_df = summary_df.apply(add_payroll_types, axis=1)
 
         for row in dataframe_to_rows(summary_df, index=False, header=False):
             ws2.append(row)
@@ -2488,6 +2500,9 @@ def generate_unique_voucher(request):
         
         if type(quantity) != int:
             return JsonResponse({"error": "quantity debe ser un número entero"}, status=400)
+        
+        if quantity > 9999:
+            return JsonResponse({"error": "La cantidad no puede ser mayor a 9999"}, status=400)
 
         if type(client_id) != int:
             return JsonResponse({"error": "client_id debe ser un número entero"}, status=400)
@@ -2857,6 +2872,37 @@ def entradas_view(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
+def entradas_te_view(request):
+    try:
+        user = request.user.id        
+        dining_room = DiningRoom.objects.filter(in_charge_id=user, status=True).first()        
+
+        if dining_room:
+            client_diner_dining_room = ClientDiner.objects.filter(dining_room=dining_room).first()            
+
+            if client_diner_dining_room:
+                response_data = {
+                    'has_dining_room': True,
+                    'dining_room': {
+                        'name': dining_room.name,
+                        'client_company': client_diner_dining_room.client.company
+                    }
+                }
+            else:
+                response_data = {
+                    'has_dining_room': False
+                }
+        else:
+            response_data = {
+                'has_dining_room': False
+            }
+
+        return JsonResponse(response_data)
+    except Exception as e:        
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
 def get_informacion_comedor_entradas(request):
     try:
         user_id = request.user.id
@@ -3037,6 +3083,118 @@ def validar_empleado(request):
             return JsonResponse({'error': 'El cuerpo de la solicitud debe ser un JSON válido'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def validar_empleado_te(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            employeed_code = data.get('employeed_code')
+
+            # Verificar si el código de empleado fue proporcionado
+            if not employeed_code:
+                return JsonResponse({'message': 'El código de empleado es requerido', "status": "danger"}, status=400)
+
+            # Verificar si el empleado existe
+            employee = Employee.objects.filter(employeed_code=employeed_code).first()
+            if not employee:
+                return JsonResponse({'message': 'Empleado no encontrado', "status": "danger"}, status=404)
+
+            # Verificar si el empleado está activo
+            if not employee.status:
+                return JsonResponse({'message': 'Empleado inactivo', "status": "danger"}, status=400)
+ 
+            # Verificar si el usuario tiene un comedor asignado
+            user_id = request.user.id
+            dining_room = DiningRoom.objects.filter(in_charge_id=user_id).first()
+            if not dining_room:
+                return JsonResponse({'message': 'No tienes un comedor asignado', "status": "danger"}, status=403)
+            
+            # Verificar si el comedor asignado está activo
+            if not dining_room.status:
+                return JsonResponse({'message': 'El comedor asignado está inactivo', "status": "danger"}, status=403)
+
+            # Verificar si el empleado tiene acceso al comedor asignado
+            employee_client_diner = EmployeeClientDiner.objects.filter(employee=employee, client_diner__dining_room=dining_room).first()
+            if not employee_client_diner:
+                return JsonResponse({'message': 'El empleado no tiene acceso a este comedor', 'status': "danger"}, status=403)
+
+            # Definir la zona horaria de Arizona
+            arizona_tz = pytz.timezone('America/Phoenix')
+            now = timezone.now().astimezone(arizona_tz)
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+            # Registrar la entrada
+            entry = Entry(
+                employee_client_diner=employee_client_diner,
+                client_diner=employee_client_diner.client_diner,
+                created_at=now
+            )
+            entry.save()
+
+            return JsonResponse({'message': 'Bienvenido al comedor', 'status': 'success'}, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'El cuerpo de la solicitud debe ser un JSON válido'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def get_last_entries(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Metodo no permitido'}, status=405)
+    
+    try:
+        last_entries = request.GET.get('last_entries')
+        dining_room = request
+        
+        if not last_entries:
+            return JsonResponse({'error': 'last_entries es requerido'}, status=400)
+        
+        last_entries = int(last_entries)
+        
+        if last_entries > 100:
+            return JsonResponse({'error': 'last_entries no puede ser mayor a 100'}, status=400)
+        
+        user = CustomUser.objects.filter(id=request.user.id).first()
+
+                
+        if not user:
+            return JsonResponse({'error': 'El usuario no existe'}, status=404)
+
+        dining_room = DiningRoom.objects.filter(in_charge=user).first()
+
+        
+        if not dining_room:
+            return JsonResponse({'error': 'El usuario no tiene un comedor asignado'}, status=404)
+        
+        client_diner = ClientDiner.objects.filter(dining_room=dining_room).first()
+
+        if not client_diner:
+            return JsonResponse({'error': 'El comedor no tiene clientes asignados'}, status=404)
+        
+        
+        
+        entries = Entry.objects.filter(client_diner=client_diner).order_by('-created_at')[:last_entries]
+
+        arizona_tz = pytz.timezone('America/Phoenix')
+        entries_json = [
+            {
+            "employee": entry.employee_client_diner.employee.name if entry.employee_client_diner else None,
+            "datetime": entry.created_at.astimezone(arizona_tz).strftime('%Y-%m-%d %H:%M:%S'),
+            "voucher": entry.voucher.folio if entry.voucher else None,
+            "voucher_type": entry.voucher.lots.voucher_type.description if entry.voucher else None
+            } for entry in entries
+        ]
+
+        return JsonResponse({'entries': entries_json})
+    
+    except Exception as err:
+        print(str(err))
+        return JsonResponse({'error': 'Error al obtener las entradas'}, status=500)
+        
+
     
 # ===================== ADMINISTRADOR DE VALES ===================== #
 @csrf_exempt

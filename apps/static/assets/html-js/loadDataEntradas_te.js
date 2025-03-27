@@ -2,8 +2,6 @@ const correctAudio = new Audio('/static/assets/audio/correct.mp3');
 const incorrectAudio = new Audio('/static/assets/audio/incorrect.mp3');
 const last5entries = document.getElementById('last5entries')
 
-
-
 function playAudio(status){
     switch (status) {
 
@@ -14,31 +12,25 @@ function playAudio(status){
             incorrectAudio.play();
         break;
     }
-    
-
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     
     async function validarEntrada() {
         const codigoEmpleado = document.getElementById('employeeCode').value;
-        const folio = document.getElementById('voucherFolio').value;
 
         showModal('Por favor, espere...', 'loading', 3)
-        if (codigoEmpleado && !folio) {
+        if (codigoEmpleado) {
             await validarEmpleadoEntrada(codigoEmpleado);
-        } else if (folio && !codigoEmpleado) {
-            await validarValeEntrada(folio);
         } else {                        
-            showModal('Por favor, ingrese solo el código de empleado o el folio del vale.', 'danger', 3);
+            showModal('Por favor, ingrese solo el código de empleado.', 'danger', 3);
             document.getElementById('employeeCode').value = '';
-            document.getElementById('voucherFolio').value = '';
         }
         updateLast5Entries()
     }
 
     async function validarEmpleadoEntrada(codigoEmpleado) {
-        const empleadoData = await validarEmpleado(codigoEmpleado);        
+        const empleadoData = await validarEmpleadoTe(codigoEmpleado);        
         if (empleadoData) {
             showModal(empleadoData.message, empleadoData.status, 3);
             playAudio(empleadoData.status);
@@ -48,18 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
-    async function validarValeEntrada(folio) {
-        const data = await validarVale(folio);        
-        if (data) {
-            showModal(data.message, data.status, 3);
-            playAudio(data.status);
-            if (data.status === 'success') {
-                // Limpiar el campo de folio del vale
-                document.getElementById('voucherFolio').value = '';
-            }
-        }
-    }
+
 
     async function mostrarComedorInfo() {
         try {
@@ -76,14 +57,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     <!-- Main Section -->
                     <div class="card-body">
-                        <h4 class="text-center mb-3">Registrar entrada</h4>
+                        <h4 class="text-center mb-3">Registrar Entrada Tiempo Extra</h4>
+                        <br>
                         <div class="form-group">
                             <label for="employeeCode">Código de Empleado</label>
                             <input type="text" class="form-control" id="employeeCode" placeholder="Ingrese código de empleado">
-                        </div>
-                        <div class="form-group">
-                            <label for="voucherFolio">Folio del Vale</label>
-                            <input type="text" class="form-control" id="voucherFolio" placeholder="Ingrese folio del vale">
                         </div>
                     </div>
 
@@ -252,9 +230,6 @@ function showModal(message, type = 'success', duration = 0) {
 
         }, duration * 1000)
     }
-
-
-    
 }
 
 function closeModal(){
@@ -266,7 +241,6 @@ function closeModal(){
     }
 }
 
-
 async function updateLast5Entries() {
     try {
         const data = await fetchLastEntries(5);
@@ -277,8 +251,6 @@ async function updateLast5Entries() {
                     <tr>
                         <th>Empleado</th>
                         <th>Fecha de entrada</th>
-                        <th>Folio de Vale</th>
-                        <th>Tipo de Vale</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -286,8 +258,6 @@ async function updateLast5Entries() {
                         <tr>
                             <td>${entry.employee || '--'}</td>
                             <td>${entry.datetime || '--'}</td>
-                            <td>${entry.voucher || '--'}</td>
-                            <td>${entry.voucher_type || '--'}</td>
                         </tr>
                     `).join('')}
                 </tbody>
